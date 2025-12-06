@@ -25,6 +25,7 @@ interface Grade {
 
 interface Enrollment {
   id: number
+  status: string
   student: {
     firstName: string
     lastName: string

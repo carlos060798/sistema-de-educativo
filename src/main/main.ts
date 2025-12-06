@@ -10,6 +10,7 @@ import { setupCourseHandlers } from './handlers/courses'
 import { setupEnrollmentHandlers } from './handlers/enrollments'
 import { setupGradeHandlers } from './handlers/grades'
 import { setupUserHandlers } from './handlers/users'
+import { setupReportHandlers } from './handlers/reports'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -130,6 +131,7 @@ function setupIpcHandlers() {
   setupEnrollmentHandlers()
   setupGradeHandlers()
   setupUserHandlers()
+  setupReportHandlers()
 }
 
 app.whenReady().then(async () => {

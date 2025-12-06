@@ -71,10 +71,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('reports:generateStudentReportCard', studentId, period),
     generateCourseRoster: (courseId) =>
       ipcRenderer.invoke('reports:generateCourseRoster', courseId),
-    exportToPdf: (reportData, filename) =>
-      ipcRenderer.invoke('reports:exportToPdf', reportData, filename),
-    exportToExcel: (reportData, filename) =>
-      ipcRenderer.invoke('reports:exportToExcel', reportData, filename)
+    exportToPdf: (reportData, type) =>
+      type === 'student'
+        ? ipcRenderer.invoke('reports:exportStudentReportToPdf', reportData)
+        : ipcRenderer.invoke('reports:exportCourseRosterToPdf', reportData),
+    exportToExcel: (reportData, type) =>
+      type === 'student'
+        ? ipcRenderer.invoke('reports:exportStudentReportToExcel', reportData)
+        : ipcRenderer.invoke('reports:exportCourseRosterToExcel', reportData),
+    getSystemStatistics: () =>
+      ipcRenderer.invoke('reports:getSystemStatistics')
   },
 
   // Database

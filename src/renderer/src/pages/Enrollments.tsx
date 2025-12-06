@@ -30,6 +30,7 @@ interface Student {
   firstName: string
   lastName: string
   studentCode?: string
+  status: string
 }
 
 interface Course {
@@ -64,13 +65,17 @@ export default function Enrollments() {
     try {
       // Obtener todos los cursos y sus inscripciones
       const coursesResult = await window.electronAPI.courses.list()
-      if (coursesResult.success) {
+      if (coursesResult.success && coursesResult.data) {
         const allEnrollments: Enrollment[] = []
 
         for (const course of coursesResult.data) {
-          const enrollmentsResult = await window.electronAPI.courses.getEnrollments(course.id)
-          if (enrollmentsResult.success) {
-            allEnrollments.push(...enrollmentsResult.data)
+          try {
+            const enrollmentsResult = await window.electronAPI.courses.getEnrollments(course.id)
+            if (enrollmentsResult.success && enrollmentsResult.data) {
+              allEnrollments.push(...enrollmentsResult.data)
+            }
+          } catch (err) {
+            console.error(`Error loading enrollments for course ${course.id}:`, err)
           }
         }
 
@@ -78,6 +83,7 @@ export default function Enrollments() {
       }
     } catch (error) {
       console.error('Error loading enrollments:', error)
+      setEnrollments([])
     } finally {
       setLoading(false)
     }
@@ -86,22 +92,24 @@ export default function Enrollments() {
   const loadStudents = async () => {
     try {
       const result = await window.electronAPI.students.list()
-      if (result.success) {
+      if (result.success && result.data) {
         setStudents(result.data.filter((s: Student) => s.status === 'active'))
       }
     } catch (error) {
       console.error('Error loading students:', error)
+      setStudents([])
     }
   }
 
   const loadCourses = async () => {
     try {
       const result = await window.electronAPI.courses.list()
-      if (result.success) {
+      if (result.success && result.data) {
         setCourses(result.data)
       }
     } catch (error) {
       console.error('Error loading courses:', error)
+      setCourses([])
     }
   }
 
