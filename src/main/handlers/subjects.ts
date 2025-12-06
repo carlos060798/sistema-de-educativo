@@ -1,11 +1,13 @@
 import { ipcMain } from 'electron'
 import { requireRole } from '@main/session'
+import { subjectService } from '@services/subjectService'
 
 export function setupSubjectHandlers() {
-  ipcMain.handle('subjects:list', async () => {
+  ipcMain.handle('subjects:list', async (_, filter) => {
     try {
       requireRole(['admin', 'teacher', 'viewer'])
-      return { success: true, data: [] }
+      const subjects = await subjectService.list(filter)
+      return { success: true, data: subjects }
     } catch (error: any) {
       return { success: false, error: error.message }
     }
@@ -14,7 +16,8 @@ export function setupSubjectHandlers() {
   ipcMain.handle('subjects:getById', async (_, id: number) => {
     try {
       requireRole(['admin', 'teacher', 'viewer'])
-      return { success: true, data: null }
+      const subject = await subjectService.getById(id)
+      return { success: true, data: subject }
     } catch (error: any) {
       return { success: false, error: error.message }
     }
@@ -22,8 +25,9 @@ export function setupSubjectHandlers() {
 
   ipcMain.handle('subjects:create', async (_, data) => {
     try {
-      requireRole('admin')
-      return { success: true, data: null }
+      const session = requireRole('admin')
+      const subject = await subjectService.create(data, session.userId)
+      return { success: true, data: subject }
     } catch (error: any) {
       return { success: false, error: error.message }
     }
@@ -31,8 +35,9 @@ export function setupSubjectHandlers() {
 
   ipcMain.handle('subjects:update', async (_, id: number, data) => {
     try {
-      requireRole('admin')
-      return { success: true, data: null }
+      const session = requireRole('admin')
+      const subject = await subjectService.update(id, data, session.userId)
+      return { success: true, data: subject }
     } catch (error: any) {
       return { success: false, error: error.message }
     }
@@ -40,7 +45,8 @@ export function setupSubjectHandlers() {
 
   ipcMain.handle('subjects:delete', async (_, id: number) => {
     try {
-      requireRole('admin')
+      const session = requireRole('admin')
+      await subjectService.delete(id, session.userId)
       return { success: true }
     } catch (error: any) {
       return { success: false, error: error.message }

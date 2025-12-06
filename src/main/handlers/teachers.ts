@@ -1,12 +1,13 @@
 import { ipcMain } from 'electron'
-import { requireRole } from '@main/session'
+import { requireRole, sessionManager } from '@main/session'
+import { teacherService } from '@services/teacherService'
 
 export function setupTeacherHandlers() {
   ipcMain.handle('teachers:list', async (_, filter) => {
     try {
       requireRole(['admin', 'teacher', 'viewer'])
-      // TODO: implement teacher service
-      return { success: true, data: [] }
+      const teachers = await teacherService.list(filter)
+      return { success: true, data: teachers }
     } catch (error: any) {
       return { success: false, error: error.message }
     }
@@ -15,7 +16,8 @@ export function setupTeacherHandlers() {
   ipcMain.handle('teachers:getById', async (_, id: number) => {
     try {
       requireRole(['admin', 'teacher', 'viewer'])
-      return { success: true, data: null }
+      const teacher = await teacherService.getById(id)
+      return { success: true, data: teacher }
     } catch (error: any) {
       return { success: false, error: error.message }
     }
@@ -23,8 +25,9 @@ export function setupTeacherHandlers() {
 
   ipcMain.handle('teachers:create', async (_, data) => {
     try {
-      requireRole('admin')
-      return { success: true, data: null }
+      const session = requireRole('admin')
+      const teacher = await teacherService.create(data, session.userId)
+      return { success: true, data: teacher }
     } catch (error: any) {
       return { success: false, error: error.message }
     }
@@ -32,8 +35,9 @@ export function setupTeacherHandlers() {
 
   ipcMain.handle('teachers:update', async (_, id: number, data) => {
     try {
-      requireRole('admin')
-      return { success: true, data: null }
+      const session = requireRole('admin')
+      const teacher = await teacherService.update(id, data, session.userId)
+      return { success: true, data: teacher }
     } catch (error: any) {
       return { success: false, error: error.message }
     }
@@ -41,7 +45,8 @@ export function setupTeacherHandlers() {
 
   ipcMain.handle('teachers:delete', async (_, id: number) => {
     try {
-      requireRole('admin')
+      const session = requireRole('admin')
+      await teacherService.delete(id, session.userId)
       return { success: true }
     } catch (error: any) {
       return { success: false, error: error.message }
