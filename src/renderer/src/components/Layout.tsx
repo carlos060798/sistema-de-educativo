@@ -51,6 +51,11 @@ export default function Layout({ children }: LayoutProps) {
               </Link>
             </li>
             <li>
+              <Link to="/enrollments" className="block px-4 py-2 rounded hover:bg-blue-800">
+                Inscripciones
+              </Link>
+            </li>
+            <li>
               <Link to="/grades" className="block px-4 py-2 rounded hover:bg-blue-800">
                 Notas
               </Link>

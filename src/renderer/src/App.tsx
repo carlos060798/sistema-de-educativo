@@ -6,6 +6,7 @@ import Students from './pages/Students'
 import Teachers from './pages/Teachers'
 import Subjects from './pages/Subjects'
 import Courses from './pages/Courses'
+import Enrollments from './pages/Enrollments'
 import Grades from './pages/Grades'
 import Reports from './pages/Reports'
 import Settings from './pages/Settings'
@@ -62,6 +63,14 @@ function App() {
         element={
           <ProtectedRoute>
             <Courses />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/enrollments"
+        element={
+          <ProtectedRoute>
+            <Enrollments />
           </ProtectedRoute>
         }
       />

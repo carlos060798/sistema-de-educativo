@@ -23,8 +23,25 @@ interface Grade {
   }
 }
 
+interface Enrollment {
+  id: number
+  student: {
+    firstName: string
+    lastName: string
+    studentCode?: string
+  }
+  course: {
+    subject: {
+      name: string
+      code?: string
+    }
+    period?: string
+  }
+}
+
 export default function Grades() {
   const [grades, setGrades] = useState<Grade[]>([])
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editingGrade, setEditingGrade] = useState<Grade | null>(null)
@@ -40,6 +57,7 @@ export default function Grades() {
 
   useEffect(() => {
     loadGrades()
+    loadEnrollments()
   }, [])
 
   const loadGrades = async () => {
@@ -53,6 +71,26 @@ export default function Grades() {
       console.error('Error loading grades:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadEnrollments = async () => {
+    try {
+      const coursesResult = await window.electronAPI.courses.list()
+      if (coursesResult.success) {
+        const allEnrollments: Enrollment[] = []
+
+        for (const course of coursesResult.data) {
+          const enrollmentsResult = await window.electronAPI.courses.getEnrollments(course.id)
+          if (enrollmentsResult.success) {
+            allEnrollments.push(...enrollmentsResult.data.filter((e: Enrollment) => e.status === 'active'))
+          }
+        }
+
+        setEnrollments(allEnrollments)
+      }
+    } catch (error) {
+      console.error('Error loading enrollments:', error)
     }
   }
 
@@ -239,6 +277,31 @@ export default function Grades() {
               {editingGrade ? 'Editar Nota' : 'Nueva Nota'}
             </h2>
             <form onSubmit={handleSubmit}>
+              {!editingGrade && (
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    Estudiante - Curso *
+                  </label>
+                  <select
+                    required
+                    value={formData.enrollmentId}
+                    onChange={(e) => setFormData({ ...formData, enrollmentId: parseInt(e.target.value) })}
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value={0}>Seleccione una inscripción</option>
+                    {enrollments.map((enrollment) => (
+                      <option key={enrollment.id} value={enrollment.id}>
+                        {enrollment.student.studentCode ? `${enrollment.student.studentCode} - ` : ''}
+                        {enrollment.student.firstName} {enrollment.student.lastName} | {' '}
+                        {enrollment.course.subject.code ? `${enrollment.course.subject.code} - ` : ''}
+                        {enrollment.course.subject.name}
+                        {enrollment.course.period ? ` (${enrollment.course.period})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-bold mb-2">
                   Puntuación *
