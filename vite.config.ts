@@ -49,7 +49,12 @@ export default defineConfig({
         },
         vite: {
           build: {
-            outDir: path.resolve(__dirname, 'dist/preload')
+            outDir: path.resolve(__dirname, 'dist/preload'),
+            rollupOptions: {
+              output: {
+                format: 'cjs' // CommonJS para compatibilidad con Electron
+              }
+            }
           }
         }
       }

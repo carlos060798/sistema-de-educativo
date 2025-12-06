@@ -43,16 +43,20 @@ async function main() {
   console.log('Admin user created:', adminUser)
 
   // Crear algunos datos de ejemplo
-  const mathSubject = await prisma.subject.create({
-    data: {
+  const mathSubject = await prisma.subject.upsert({
+    where: { code: 'MAT-001' },
+    update: {},
+    create: {
       code: 'MAT-001',
       name: 'Matemáticas',
       description: 'Matemáticas básicas'
     }
   })
 
-  const scienceSubject = await prisma.subject.create({
-    data: {
+  const scienceSubject = await prisma.subject.upsert({
+    where: { code: 'SCI-001' },
+    update: {},
+    create: {
       code: 'SCI-001',
       name: 'Ciencias',
       description: 'Ciencias naturales'
