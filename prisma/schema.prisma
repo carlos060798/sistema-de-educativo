@@ -1,0 +1,137 @@
+// Prisma Schema para Sistema Educativo
+// Base de datos: SQLite local
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ===== ROLES Y USUARIOS =====
+
+model Role {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique // 'admin', 'teacher', 'viewer'
+  users     User[]
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id           Int         @id @default(autoincrement())
+  username     String      @unique
+  passwordHash String
+  roleId       Int
+  role         Role        @relation(fields: [roleId], references: [id])
+  teacher      Teacher?
+  auditLogs    AuditLog[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+// ===== PROFESORES Y ESTUDIANTES =====
+
+model Teacher {
+  id        Int      @id @default(autoincrement())
+  userId    Int?     @unique
+  user      User?    @relation(fields: [userId], references: [id])
+  firstName String
+  lastName  String
+  email     String?
+  phone     String?
+  courses   Course[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Student {
+  id             Int          @id @default(autoincrement())
+  studentCode    String?      @unique
+  firstName      String
+  lastName       String
+  identification String?
+  email          String?
+  gradeLevel     String?      // nivel escolar: "1ro", "2do", etc.
+  status         String       @default("active") // active, inactive
+  enrollments    Enrollment[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+// ===== MATERIAS Y CURSOS =====
+
+model Subject {
+  id          Int      @id @default(autoincrement())
+  code        String?  @unique
+  name        String
+  description String?
+  courses     Course[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Course {
+  id          Int          @id @default(autoincrement())
+  subjectId   Int
+  subject     Subject      @relation(fields: [subjectId], references: [id])
+  teacherId   Int?
+  teacher     Teacher?     @relation(fields: [teacherId], references: [id])
+  name        String?
+  period      String?      // ej. '2025-01', 'Q1-2025'
+  enrollments Enrollment[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([subjectId])
+  @@index([teacherId])
+}
+
+// ===== INSCRIPCIONES Y NOTAS =====
+
+model Enrollment {
+  id         Int      @id @default(autoincrement())
+  studentId  Int
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  courseId   Int
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  grades     Grade[]
+  enrolledAt DateTime @default(now())
+
+  @@unique([studentId, courseId])
+  @@index([studentId])
+  @@index([courseId])
+}
+
+model Grade {
+  id           Int        @id @default(autoincrement())
+  enrollmentId Int
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  period       String?    // 'Q1', 'Q2', 'Final', etc.
+  gradeType    String?    // 'exam', 'homework', 'project', 'participation'
+  score        Float
+  maxScore     Float      @default(100.0)
+  weight       Float      @default(1.0) // peso para cálculo de promedio
+  notes        String?    // comentarios del profesor
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([enrollmentId])
+}
+
+// ===== AUDITORÍA =====
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int?
+  user       User?    @relation(fields: [userId], references: [id])
+  action     String   // 'CREATE', 'UPDATE', 'DELETE', 'LOGIN'
+  objectType String?  // 'Student', 'Course', 'Grade', etc.
+  objectId   Int?
+  details    String?  // JSON con detalles adicionales
+  timestamp  DateTime @default(now())
+
+  @@index([userId])
+  @@index([timestamp])
+}
